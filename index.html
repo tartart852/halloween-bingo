@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow with the Goal · 萬聖節 Music Show Bingo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Noto+Sans+HK:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#140b1f; --bg2:#22113a; --card:#1d1030; --line:#3a2558;
+    --orange:#ff7a1a; --orange2:#ffb347; --green:#7dff9b; --purple:#b388ff;
+    --text:#f5ecff; --muted:#b9a6d3; --red:#ff5c7a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:"Noto Sans HK",system-ui,sans-serif; color:var(--text);
+    background:radial-gradient(1200px 600px at 50% -200px,#3b1b5e 0%,transparent 70%),var(--bg);
+    min-height:100vh; line-height:1.5;
+  }
+  .wrap{max-width:620px;margin:0 auto;padding:28px 18px 60px}
+  .wrap.wide{max-width:900px}
+  header{text-align:center;margin-bottom:22px}
+  .kicker{font-size:13px;letter-spacing:.18em;color:var(--orange2);text-transform:uppercase;font-weight:700}
+  h1{font-family:"Creepster","Noto Sans HK",cursive;font-weight:400;font-size:clamp(40px,10vw,64px);
+     margin:4px 0 0;color:var(--orange);line-height:1;letter-spacing:.03em;text-shadow:0 0 24px rgba(255,122,26,.35)}
+  .sub{font-size:20px;font-weight:900;margin-top:6px}
+  .prize{margin:18px auto 0;background:linear-gradient(135deg,#2b1546,#1a0d2b);border:1px solid var(--line);
+         border-radius:16px;padding:14px 16px;font-size:15px}
+  .prize b{color:var(--orange2)}
+  .rules{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:18px 0 6px}
+  .rule{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;font-size:14px}
+  .rule .n{font-size:22px;font-weight:900;color:var(--orange)}
+  .tip{font-size:14px;color:var(--muted);text-align:center;margin:10px 0 0}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:20px}
+  label{display:block;font-weight:700;font-size:14px;margin:0 0 6px;color:var(--muted)}
+  input[type=text],textarea{
+    width:100%;font:inherit;font-size:16px;color:var(--text);background:#120a1d;
+    border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;transition:border .15s;
+  }
+  input[type=text]:focus,textarea:focus{border-color:var(--orange)}
+  .song{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .song .num{flex:0 0 34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;
+             background:var(--orange);color:#1a0d00}
+  .song input.dup{border-color:var(--red)}
+  .err{color:var(--red);font-size:14px;min-height:20px;margin-top:4px}
+  button{font:inherit;cursor:pointer;border:none;border-radius:14px;padding:13px 18px;font-weight:900;font-size:16px}
+  .btn{background:var(--orange);color:#1a0d00;width:100%}
+  .btn:hover{filter:brightness(1.08)}
+  .btn2{background:transparent;color:var(--text);border:1.5px solid var(--line)}
+  .btn2:hover{border-color:var(--orange)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>*{flex:1 1 160px}
+  #result{display:none}
+  #cardImg{width:100%;border-radius:16px;display:block;margin:6px 0 12px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .hint{font-size:13px;color:var(--muted);text-align:center;margin:0 0 12px}
+  .ok{color:var(--green);font-size:14px;text-align:center;min-height:20px;margin-top:8px}
+  footer{text-align:center;margin-top:30px;font-size:13px;color:var(--muted)}
+  footer a{color:var(--muted)}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ============ PLAYER VIEW ============ -->
+<div class="wrap">
+  <header>
+    <div class="kicker">Flow with the Goal Special</div>
+    <h1>Music Show Bingo</h1>
+    <div class="sub">🎃 萬聖節特別版 🦇</div>
+    <div class="prize">勝出者將會得到寫咗抬頭嘅<br><b>失眠藥萬聖節專屬賀卡！</b></div>
+  </header>
+
+  <div class="rules">
+    <div class="rule"><div class="n">11</div>今晚會播 11 隻歌</div>
+    <div class="rule"><div class="n">5</div>每人揀 5 首歌</div>
+    <div class="rule"><div class="n">5/5</div>全中即獲獎（唔分次序）</div>
+    <div class="rule"><div class="n">4/5</div>冇人全中？中 4 首都得！</div>
+  </div>
+  <p class="tip">全部係廣東歌 · 主題：萬聖節<br>💡 貼士：冇任何 K 歌、情歌、慢歌向嘅嘢</p>
+
+  <form id="form" class="panel" autocomplete="off">
+    <label for="name">你嘅名 / 暱稱</label>
+    <input type="text" id="name" maxlength="20" placeholder="例如：Peggy" style="margin-bottom:16px">
+    <label>你估嘅 5 首歌</label>
+    <div id="songs"></div>
+    <div class="err" id="err"></div>
+    <button type="submit" class="btn">🎃 整我張 Bingo 卡</button>
+  </form>
+
+  <div id="result" class="panel">
+    <img id="cardImg" alt="你嘅 Bingo 卡">
+    <p class="hint">📱 手機：長按張圖就可以儲存 / 分享</p>
+    <div class="row">
+      <button class="btn" id="saveBtn" type="button">⬇️ 儲存圖片</button>
+    </div>
+    <div class="ok" id="ok"></div>
+    <p class="hint" style="margin-top:10px">記得將張圖 send 返入群組 share 俾大家睇！</p>
+    <button class="btn btn2" id="editBtn" type="button" style="width:100%;margin-top:12px">✏️ 改答案</button>
+  </div>
+
+  <footer>Happy Halloween 🎃</footer>
+</div>
+
+<canvas id="cv" width="1080" height="1350" style="display:none"></canvas>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  /* ---------- helpers ---------- */
+  function norm(s){
+    return (s||"").normalize("NFKC").toLowerCase()
+      .replace(/[\s　·•・\-_.,，。、!！?？'"“”‘’《》〈〉「」『』()（）\[\]【】~～:：;；\/\\|]/g,"");
+  }
+  function same(a,b){
+    const x=norm(a), y=norm(b);
+    if(!x||!y) return false;
+    if(x===y) return true;
+    const [s,l] = x.length<=y.length?[x,y]:[y,x];
+    return s.length>=2 && l.includes(s) && s.length/l.length>=0.6;
+  }
+  function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  function load(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch(e){return d}}
+
+  /* ================= PLAYER ================= */
+  const songBox=$("songs");
+  for(let i=0;i<5;i++){
+    const d=document.createElement("div"); d.className="song";
+    d.innerHTML=`<div class="num">${i+1}</div><input type="text" maxlength="30" placeholder="歌名（可以加埋歌手）">`;
+    songBox.appendChild(d);
+  }
+  const songInputs=[...songBox.querySelectorAll("input")];
+  const draft=load("bingoDraft",null);
+  if(draft){ $("name").value=draft.name||""; (draft.songs||[]).forEach((s,i)=>{if(songInputs[i])songInputs[i].value=s}); }
+
+  function readForm(){
+    return {name:$("name").value.trim(), songs:songInputs.map(i=>i.value.trim())};
+  }
+  [$("name"),...songInputs].forEach(el=>el.addEventListener("input",()=>{store("bingoDraft",readForm());$("err").textContent="";songInputs.forEach(i=>i.classList.remove("dup"))}));
+
+  $("form").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const f=readForm();
+    if(!f.name){$("err").textContent="請填你嘅名 👻";$("name").focus();return}
+    const empty=f.songs.findIndex(s=>!s);
+    if(empty>=0){$("err").textContent=`第 ${empty+1} 首未填呀！`;songInputs[empty].focus();return}
+    for(let i=0;i<5;i++)for(let j=i+1;j<5;j++){
+      if(same(f.songs[i],f.songs[j])){
+        songInputs[i].classList.add("dup");songInputs[j].classList.add("dup");
+        $("err").textContent=`第 ${i+1} 同第 ${j+1} 首好似重複咗`;return;
+      }
+    }
+    store("bingoDraft",f);
+    await drawCard(f);
+    $("form").style.display="none";
+    $("result").style.display="block";
+    $("ok").textContent="";
+    $("result").scrollIntoView({behavior:"smooth"});
+  });
+  $("editBtn").onclick=()=>{$("result").style.display="none";$("form").style.display="block";$("form").scrollIntoView({behavior:"smooth"})};
+
+  let cardBlob=null, downloads=null;
+  (async()=>{
+    try{ if(window.claude&&claude.use) downloads=await claude.use("downloads"); }catch(e){downloads=null}
+  })();
+  $("saveBtn").onclick=async()=>{
+    if(!cardBlob) return;
+    const name=(readForm().name||"bingo").replace(/[\\/:*?"<>|]/g,"");
+    if(!downloads){
+      const a=document.createElement("a");a.href=$("cardImg").src;a.download=`Halloween-Bingo-${name}.png`;
+      document.body.appendChild(a);a.click();a.remove();
+      $("ok").textContent="✅ 已下載（如果冇反應，請長按張圖儲存）";return;
+    }
+    try{ await downloads.save({filename:`Halloween-Bingo-${name}.png`,data:cardBlob}); $("ok").textContent="✅ 已儲存"; }
+    catch(err){
+      if(err&&err.code==="declined") return;
+      $("ok").textContent="呢度儲存唔到，請長按張圖儲存";
+    }
+  };
+
+  /* ---------- card drawing ---------- */
+  function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+  function pumpkin(ctx,cx,cy,s){
+    ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);
+    ctx.fillStyle="#3c7a2a";ctx.fillRect(-6,-58,12,22);
+    const g=ctx.createRadialGradient(-15,-15,10,0,0,60);g.addColorStop(0,"#ffb04d");g.addColorStop(1,"#e85d00");
+    ctx.fillStyle=g;
+    [[-28,0,34,44],[28,0,34,44],[0,0,36,48]].forEach(([x,y,rx,ry])=>{ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()});
+    ctx.fillStyle="#2a0f00";
+    ctx.beginPath();ctx.moveTo(-28,-12);ctx.lineTo(-12,-12);ctx.lineTo(-20,-26);ctx.fill();
+    ctx.beginPath();ctx.moveTo(28,-12);ctx.lineTo(12,-12);ctx.lineTo(20,-26);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-30,8);ctx.lineTo(-18,14);ctx.lineTo(-10,8);ctx.lineTo(0,16);ctx.lineTo(10,8);ctx.lineTo(18,14);ctx.lineTo(30,8);
+    ctx.quadraticCurveTo(0,40,-30,8);ctx.fill();
+    ctx.restore();
+  }
+  function bat(ctx,cx,cy,s,rot){
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(rot||0);ctx.scale(s,s);ctx.fillStyle="#0b0512";
+    ctx.beginPath();ctx.moveTo(0,-6);
+    ctx.quadraticCurveTo(20,-24,52,-14);ctx.quadraticCurveTo(44,-4,46,6);ctx.quadraticCurveTo(36,0,30,8);ctx.quadraticCurveTo(22,2,12,10);
+    ctx.lineTo(0,14);
+    ctx.lineTo(-12,10);ctx.quadraticCurveTo(-22,2,-30,8);ctx.quadraticCurveTo(-36,0,-46,6);ctx.quadraticCurveTo(-44,-4,-52,-14);ctx.quadraticCurveTo(-20,-24,0,-6);
+    ctx.fill();
+    ctx.beginPath();ctx.moveTo(-6,-6);ctx.lineTo(-8,-16);ctx.lineTo(-2,-8);ctx.lineTo(2,-8);ctx.lineTo(8,-16);ctx.lineTo(6,-6);ctx.fill();
+    ctx.restore();
+  }
+  function fitText(ctx,text,maxW,size,weight,family){
+    let s=size;
+    do{ctx.font=`${weight} ${s}px ${family}`; if(ctx.measureText(text).width<=maxW) break; s-=2;}while(s>18);
+    if(ctx.measureText(text).width>maxW){while(text.length>1&&ctx.measureText(text+"…").width>maxW)text=text.slice(0,-1);text+="…"}
+    return {text,size:s};
+  }
+
+  async function drawCard(f){
+    try{await Promise.all([document.fonts.load('900 60px "Noto Sans HK"'),document.fonts.load('700 40px "Noto Sans HK"'),document.fonts.load('80px "Creepster"')])}catch(e){}
+    const c=$("cv"),ctx=c.getContext("2d"),W=1080,H=1350;
+    const CJK='"Noto Sans HK", sans-serif';
+    // background
+    let g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,"#2a1046");g.addColorStop(.55,"#150a24");g.addColorStop(1,"#0c0614");
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    // moon
+    let mg=ctx.createRadialGradient(860,190,10,860,190,260);mg.addColorStop(0,"rgba(255,220,150,.55)");mg.addColorStop(1,"rgba(255,220,150,0)");
+    ctx.fillStyle=mg;ctx.fillRect(560,0,520,460);
+    ctx.fillStyle="#ffe7b0";ctx.beginPath();ctx.arc(860,190,92,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="rgba(220,180,110,.35)";[[830,160,16],[890,220,22],[880,150,9]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()});
+    // stars
+    let seed=7;const rnd=()=>((seed=(seed*9301+49297)%233280)/233280);
+    ctx.fillStyle="rgba(255,255,255,.7)";for(let i=0;i<60;i++){ctx.beginPath();ctx.arc(rnd()*W,rnd()*520,rnd()*2+.5,0,Math.PI*2);ctx.fill()}
+    bat(ctx,760,110,1.1,-.15);bat(ctx,960,300,.8,.2);bat(ctx,150,120,.9,.1);
+    // header
+    ctx.textAlign="center";ctx.textBaseline="alphabetic";
+    ctx.fillStyle="#ffb347";ctx.font=`700 30px ${CJK}`;
+    ctx.fillText("F L O W   W I T H   T H E   G O A L   S P E C I A L",W/2,110);
+    ctx.fillStyle="#ff7a1a";ctx.shadowColor="rgba(255,122,26,.6)";ctx.shadowBlur=30;
+    ctx.font=`110px "Creepster", ${CJK}`;ctx.fillText("Music Show Bingo",W/2,230);
+    ctx.shadowBlur=0;
+    ctx.fillStyle="#f5ecff";ctx.font=`900 46px ${CJK}`;ctx.fillText("🎃 萬聖節特別版 🎃",W/2,300);
+    // name tag
+    const NM=fitText(ctx,f.name,760,64,900,CJK),nm=NM.text;
+    ctx.font=`900 ${NM.size}px ${CJK}`;const nw=Math.min(860,ctx.measureText(nm).width+120);
+    rr(ctx,(W-nw)/2,345,nw,100,50);ctx.fillStyle="#f5ecff";ctx.fill();
+    ctx.fillStyle="#1a0d2b";ctx.fillText(nm,W/2,418);
+    ctx.fillStyle="#b9a6d3";ctx.font=`700 30px ${CJK}`;ctx.fillText("嘅 5 首心水歌",W/2,500);
+    // songs
+    const top=540,rowH=118,gap=18,x0=90,w=W-180;
+    f.songs.forEach((s,i)=>{
+      const y=top+i*(rowH+gap);
+      rr(ctx,x0,y,w,rowH,28);ctx.fillStyle="rgba(255,255,255,.07)";ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle="rgba(255,122,26,.55)";ctx.stroke();
+      pumpkin(ctx,x0+72,y+rowH/2+6,.82);
+      ctx.textAlign="center";
+      ctx.fillStyle="#fff3e0";ctx.font=`900 26px ${CJK}`;ctx.fillText(String(i+1),x0+72,y+30);
+      ctx.textAlign="left";ctx.fillStyle="#f5ecff";
+      const T=fitText(ctx,s,w-170,52,900,CJK);ctx.font=`900 ${T.size}px ${CJK}`;
+      ctx.fillText(T.text,x0+140,y+rowH/2+18);
+    });
+    // footer
+    ctx.textAlign="center";
+    const fy=top+5*(rowH+gap)+40;
+    ctx.fillStyle="#ffb347";ctx.font=`900 34px ${CJK}`;ctx.fillText("全中 5 首即獲：失眠藥萬聖節專屬賀卡！",W/2,fy);
+    ctx.fillStyle="#b9a6d3";ctx.font=`400 26px ${CJK}`;ctx.fillText("11 首廣東歌 · 不分次序 · 冇人全中就睇邊個中 4 首",W/2,fy+48);
+    // ground pumpkins
+    pumpkin(ctx,70,H-30,1.1);pumpkin(ctx,W-70,H-30,1.1);
+    cardBlob=await new Promise(r=>c.toBlob(r,"image/png"));
+    const url=URL.createObjectURL(cardBlob);
+    const img=$("cardImg"); if(img.dataset.url) URL.revokeObjectURL(img.dataset.url);
+    img.src=url;img.dataset.url=url;
+  }
+
+})();
+</script>
+</body>
+</html>
